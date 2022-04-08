@@ -1,160 +1,87 @@
 package test;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EmptySource;
-import org.junit.jupiter.params.provider.ValueSource;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
+import org.testng.annotations.Test;
 import page.WeightCalculatorHomePage;
 
-public class WeightCalculatorTest {
-    private final String URL = "https://svyatoslav.biz/testlab/wt/";
+import static org.testng.Assert.assertEquals;
 
-    private static WebDriver driver;
+public class WeightCalculatorTest extends AbstractTest {
 
-    @BeforeAll
-    public static void browserSetup() {
-        driver = new ChromeDriver();
+    @Test(dataProvider = "heightWithValidValuesForExcessBodyWeight", dataProviderClass = DataProviderClass.class)
+    public void testInputHeightWithValidValuesForExcessBodyWeight(String validHeight) {
+        weightCalculatorHomePage.openPage()
+                .fillFormAndSubmit("Name", validHeight, "100", "М");
+        assertEquals(weightCalculatorHomePage.getWeightMessageAfterSubmit(), WeightCalculatorHomePage.MESSAGE_OF_EXCESS_WEIGHT);
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"50", "300", "150"})
-    public void testInputHeightWithValidValues(String validHeight) {
-        driver.get(URL);
-        WeightCalculatorHomePage weightCalculatorHomePage = new WeightCalculatorHomePage(driver);
-        String actualMessage = weightCalculatorHomePage.typeName("Name")
-                .typeHeight(validHeight)
-                .typeWeight("100")
-                .selectGender("М")
-                .clickSubmitButton()
-                .getWeightMessageAfterSubmit();
-        Assertions.assertTrue(actualMessage.contains("масс"));
+    @Test
+    public void testInputHeightWithValidValuesForLackBodyWeight() {
+        weightCalculatorHomePage.openPage()
+                .fillFormAndSubmit("Name", "300", "100", "М");
+        assertEquals(weightCalculatorHomePage.getWeightMessageAfterSubmit(), WeightCalculatorHomePage.MESSAGE_OF_LACK_WEIGHT);
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"49", "301", "0", "-10", "1000000", "a", "A", "-", "a*1A"})
+    @Test(dataProvider = "heightWithInvalidValues", dataProviderClass = DataProviderClass.class)
     public void testInputHeightWithInvalidValues(String invalidHeight) {
-        driver.get(URL);
-        WeightCalculatorHomePage weightCalculatorHomePage = new WeightCalculatorHomePage(driver);
-        String expectedMessage = "Рост должен быть в диапазоне 50-300 см.";
-        String actualMessage = weightCalculatorHomePage.typeName("Name")
-                .typeHeight(invalidHeight)
-                .typeWeight("100")
-                .selectGender("М")
-                .clickSubmitButton()
-                .getErrorInputMessageAfterSubmit();
-        Assertions.assertTrue(actualMessage.contains(expectedMessage));
+        weightCalculatorHomePage.openPage()
+                .fillFormAndSubmit("Name", invalidHeight, "100", "М");
+        assertEquals(weightCalculatorHomePage.getErrorInputMessageAfterSubmit(), WeightCalculatorHomePage.ERROR_MESSAGE_OF_HEIGHT_INPUT);
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"3", "500", "60"})
-    public void testInputWeightWithValidValues(String validWeight) {
-        driver.get(URL);
-        WeightCalculatorHomePage weightCalculatorHomePage = new WeightCalculatorHomePage(driver);
-        String actualMessage = weightCalculatorHomePage.typeName("Name")
-                .typeHeight("150")
-                .typeWeight(validWeight)
-                .selectGender("М")
-                .clickSubmitButton()
-                .getWeightMessageAfterSubmit();
-        Assertions.assertTrue(actualMessage.contains("масс"));
+    @Test
+    public void testInputWeightWithValidValuesForLackBodyWeight() {
+        weightCalculatorHomePage.openPage()
+                .fillFormAndSubmit("Name", "150", "3", "М");
+        assertEquals(weightCalculatorHomePage.getWeightMessageAfterSubmit(), WeightCalculatorHomePage.MESSAGE_OF_LACK_WEIGHT);
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"2", "501", "0", "-10", "1000000", "a", "A", "-", "a*1A"})
+    @Test
+    public void testInputWeightWithValidValuesForSlightExcessBodyWeight() {
+        weightCalculatorHomePage.openPage()
+                .fillFormAndSubmit("Name", "150", "60", "М");
+        assertEquals(weightCalculatorHomePage.getWeightMessageAfterSubmit(), WeightCalculatorHomePage.MESSAGE_OF_SLIGHT_EXCESS_WEIGHT);
+    }
+
+    @Test
+    public void testInputWeightWithValidValuesForExcessBodyWeight() {
+        weightCalculatorHomePage.openPage()
+                .fillFormAndSubmit("Name", "150", "500", "М");
+        assertEquals(weightCalculatorHomePage.getWeightMessageAfterSubmit(), WeightCalculatorHomePage.MESSAGE_OF_EXCESS_WEIGHT);
+    }
+
+    @Test(dataProvider = "weightWithInvalidValues", dataProviderClass = DataProviderClass.class)
     public void testInputWeightWithInvalidValues(String invalidWeight) {
-        driver.get(URL);
-        WeightCalculatorHomePage weightCalculatorHomePage = new WeightCalculatorHomePage(driver);
-        String expectedMessage = "Вес должен быть в диапазоне 3-500 кг.";
-        String actualMessage = weightCalculatorHomePage.typeName("Name")
-                .typeHeight("150")
-                .typeWeight(invalidWeight)
-                .selectGender("М")
-                .clickSubmitButton()
-                .getErrorInputMessageAfterSubmit();
-        Assertions.assertTrue(actualMessage.contains(expectedMessage));
+        weightCalculatorHomePage.openPage()
+                .fillFormAndSubmit("Name", "150", invalidWeight, "М");
+        assertEquals(weightCalculatorHomePage.getErrorInputMessageAfterSubmit(), WeightCalculatorHomePage.ERROR_MESSAGE_OF_WEIGHT_INPUT);
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"Name", "A"})
+    @Test(dataProvider = "nameWithValidValues", dataProviderClass = DataProviderClass.class)
     public void testInputNameWithValidValues(String validName) {
-        driver.get(URL);
-        WeightCalculatorHomePage weightCalculatorHomePage = new WeightCalculatorHomePage(driver);
-        String actualMessage = weightCalculatorHomePage.typeName(validName)
-                .typeHeight("150")
-                .typeWeight("60")
-                .selectGender("М")
-                .clickSubmitButton()
-                .getWeightMessageAfterSubmit();
-        Assertions.assertTrue(actualMessage.contains("масс"));
+        weightCalculatorHomePage.openPage()
+                .fillFormAndSubmit(validName, "150", "60", "М");
+        assertEquals(weightCalculatorHomePage.getWeightMessageAfterSubmit(), WeightCalculatorHomePage.MESSAGE_OF_SLIGHT_EXCESS_WEIGHT);
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {" ", "0"})
+    @Test(dataProvider = "nameWithInvalidValues", dataProviderClass = DataProviderClass.class)
     public void testInputNameWithInvalidValues(String invalidName) {
-        driver.get(URL);
-        WeightCalculatorHomePage weightCalculatorHomePage = new WeightCalculatorHomePage(driver);
-        String expectedMessage = "Не указано имя.";
-        String actualMessage = weightCalculatorHomePage.typeName(invalidName)
-                .typeHeight("150")
-                .typeWeight("60")
-                .selectGender("М")
-                .clickSubmitButton()
-                .getErrorInputMessageAfterSubmit();
-        Assertions.assertTrue(actualMessage.contains(expectedMessage));
+        weightCalculatorHomePage.openPage()
+                .fillFormAndSubmit(invalidName, "150", "60", "М");
+        assertEquals(weightCalculatorHomePage.getErrorInputMessageAfterSubmit(), WeightCalculatorHomePage.ERROR_MESSAGE_OF_NAME_INPUT);
     }
 
-    @ParameterizedTest
-    @EmptySource
-    public void testInputNameWithEmptySource(String emptyName) {
-        driver.get(URL);
-        WeightCalculatorHomePage weightCalculatorHomePage = new WeightCalculatorHomePage(driver);
-        String expectedMessage = "Не указано имя.";
-        String actualMessage = weightCalculatorHomePage.typeName(emptyName)
-                .typeHeight("150")
-                .typeWeight("60")
-                .selectGender("М")
-                .clickSubmitButton()
-                .getErrorInputMessageAfterSubmit();
-        Assertions.assertTrue(actualMessage.contains(expectedMessage));
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {"М", "Ж"})
+    @Test(dataProvider = "genderWithInvalidValues", dataProviderClass = DataProviderClass.class)
     public void testButtonGenderWithValidValues(String validGender) {
-        driver.get(URL);
-        WeightCalculatorHomePage weightCalculatorHomePage = new WeightCalculatorHomePage(driver);
-        String actualMessage = weightCalculatorHomePage.typeName("Name")
-                .typeHeight("150")
-                .typeWeight("60")
-                .selectGender(validGender)
-                .clickSubmitButton()
-                .getWeightMessageAfterSubmit();
-        Assertions.assertTrue(actualMessage.contains("масс"));
+        weightCalculatorHomePage.openPage()
+                .fillFormAndSubmit("Name", "150", "60", validGender);
+        assertEquals(weightCalculatorHomePage.getWeightMessageAfterSubmit(), WeightCalculatorHomePage.MESSAGE_OF_SLIGHT_EXCESS_WEIGHT);
     }
 
     @Test
     public void testButtonGenderWithoutSelecting() {
-        driver.get(URL);
-        WeightCalculatorHomePage weightCalculatorHomePage = new WeightCalculatorHomePage(driver);
-        String expectedMessage = "Не указан пол.";
-        String actualMessage = weightCalculatorHomePage.typeName("Name")
-                .typeHeight("150")
-                .typeWeight("60")
-                .clickSubmitButton()
-                .getErrorInputMessageAfterSubmit();
-        Assertions.assertTrue(actualMessage.contains(expectedMessage));
+        weightCalculatorHomePage.openPage()
+                .fillFormAndSubmit("Name", "150", "500", "");
+        assertEquals(weightCalculatorHomePage.getErrorInputMessageAfterSubmit(), WeightCalculatorHomePage.ERROR_MESSAGE_OF_GENDER_SELECT);
     }
-
-    @AfterAll
-    public static void browserTearDown() {
-        driver.quit();
-        driver = null;
-    }
-
 
 }

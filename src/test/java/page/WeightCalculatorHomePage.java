@@ -3,20 +3,28 @@ package page;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
-import org.openqa.selenium.support.PageFactory;
 
-public class WeightCalculatorHomePage {
-    private static final String INPUT_NAME_XPATH = "//input[@name='name']";
-    private static final String INPUT_HEIGHT_XPATH = "//input[@name='height']";
-    private static final String INPUT_WEIGHT_XPATH = "//input[@name='weight']";
-    private static final String RADIOBUTTON_MALE_GENDER_XPATH = "//input[@name='gender'][1]";
-    private static final String RADIOBUTTON_FEMALE_GENDER_XPATH = "//input[@name='gender'][2]";
-    private static final String BUTTON_SUBMIT_XPATH = "//input[@value='Рассчитать']";
+public class WeightCalculatorHomePage extends AbstractPage {
+    private final String URL = "https://svyatoslav.biz/testlab/wt/";
 
-    private static final String WEIGHT_MESSAGE_FIELD_XPATH = "//td[text()='menu']/following-sibling::td";
-    private static final String ERROR_INPUT_MESSAGE_FIELD_XPATH = "//td[text()='menu']/following-sibling::td//b";
+    private final String INPUT_NAME_XPATH = "//input[@name='name']";
+    private final String INPUT_HEIGHT_XPATH = "//input[@name='height']";
+    private final String INPUT_WEIGHT_XPATH = "//input[@name='weight']";
+    private final String RADIOBUTTON_MALE_GENDER_XPATH = "//input[@name='gender'][1]";
+    private final String RADIOBUTTON_FEMALE_GENDER_XPATH = "//input[@name='gender'][2]";
+    private final String BUTTON_SUBMIT_XPATH = "//input[@value='Рассчитать']";
 
-    private WebDriver driver;
+    private final String WEIGHT_MESSAGE_FIELD_XPATH = "//td[text()='menu']/following-sibling::td";
+    private final String ERROR_INPUT_MESSAGE_FIELD_XPATH = "//td[text()='menu']/following-sibling::td//b";
+
+    public static final String MESSAGE_OF_EXCESS_WEIGHT = "Значительный избыток массы тела, тучность";
+    public static final String MESSAGE_OF_LACK_WEIGHT = "Слишком малая масса тела";
+    public static final String MESSAGE_OF_SLIGHT_EXCESS_WEIGHT = "Незначительный избыток массы тела";
+
+    public static final String ERROR_MESSAGE_OF_NAME_INPUT = "Не указано имя.";
+    public static final String ERROR_MESSAGE_OF_HEIGHT_INPUT = "Рост должен быть в диапазоне 50-300 см.";
+    public static final String ERROR_MESSAGE_OF_WEIGHT_INPUT = "Вес должен быть в диапазоне 3-500 кг.";
+    public static final String ERROR_MESSAGE_OF_GENDER_SELECT = "Не указан пол.";
 
     @FindBy(xpath = INPUT_NAME_XPATH)
     WebElement inputName;
@@ -43,8 +51,12 @@ public class WeightCalculatorHomePage {
     WebElement errorInputMessageAfterSubmit;
 
     public WeightCalculatorHomePage(WebDriver driver) {
-        PageFactory.initElements(driver, this);
-        this.driver = driver;
+        super(driver);
+    }
+
+    public WeightCalculatorHomePage openPage() {
+        driver.get(URL);
+        return this;
     }
 
     public WeightCalculatorHomePage typeName(String name) {
@@ -73,6 +85,15 @@ public class WeightCalculatorHomePage {
 
     public WeightCalculatorHomePage clickSubmitButton() {
         buttonSubmit.click();
+        return this;
+    }
+
+    public WeightCalculatorHomePage fillFormAndSubmit(String name, String height, String weight, String gender) {
+        typeName(name);
+        typeHeight(height);
+        typeWeight(weight);
+        selectGender(gender);
+        clickSubmitButton();
         return this;
     }
 
